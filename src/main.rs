@@ -37,4 +37,6 @@ fn main() {
         .balances
         .transfer("alice".to_string(), "charlie".to_string(), 20)
         .map_err(|e| eprintln!("{}", e));
+
+    println!("{:#?}", runtime);
 }
