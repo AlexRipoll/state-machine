@@ -1,7 +1,4 @@
-use std::{
-    collections::BTreeMap,
-    ops::{Add, Sub},
-};
+use std::collections::BTreeMap;
 
 #[derive(Debug)]
 struct Pallet {
@@ -64,5 +61,23 @@ mod test {
 
         assert_eq!(balances.balance(&"alice".to_string()), 100);
         assert_eq!(balances.balance(&"bob".to_string()), 0);
+    }
+    #[test]
+    fn transfer_balance() {
+        let mut balances = Pallet::new();
+
+        assert_eq!(
+            balances.transfer("alice".to_string(), "bob".to_string(), 10),
+            Err("insufficient balance")
+        );
+
+        balances.set_balance(&"alice".to_string(), 100);
+        assert_eq!(
+            balances.transfer("alice".to_string(), "bob".to_string(), 10),
+            Ok(())
+        );
+
+        assert_eq!(balances.balance(&"alice".to_string()), 90);
+        assert_eq!(balances.balance(&"bob".to_string()), 10);
     }
 }
