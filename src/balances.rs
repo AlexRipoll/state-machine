@@ -2,20 +2,21 @@ use std::collections::BTreeMap;
 
 use num::{CheckedAdd, CheckedSub, Zero};
 
+pub trait Config {
+    type AccountId: Ord + Clone;
+    type Balance: Zero + CheckedSub + CheckedAdd + Copy;
+}
+
 /// This is the Balances Module.
 /// It is a simple module which keeps track of how much balance each account has in this state
 /// machine.
 #[derive(Debug)]
-pub struct Pallet<AccountId, Balance> {
+pub struct Pallet<T: Config> {
     // A simple storage mapping from accounts (`String`) to their balances (`u128`).
-    balances: BTreeMap<AccountId, Balance>,
+    balances: BTreeMap<T::AccountId, T::Balance>,
 }
 
-impl<AccountId, Balance> Pallet<AccountId, Balance>
-where
-    AccountId: Ord + Clone,
-    Balance: Zero + CheckedSub + CheckedAdd + Copy,
-{
+impl<T: Config> Pallet<T> {
     /// Create a new instance of the balances module.
     pub fn new() -> Self {
         Self {
@@ -24,14 +25,14 @@ where
     }
 
     /// Set the balance of an account `who` to some `amount`.
-    pub fn set_balance(&mut self, who: &AccountId, amount: Balance) {
+    pub fn set_balance(&mut self, who: &T::AccountId, amount: T::Balance) {
         self.balances.insert(who.clone(), amount);
     }
 
     /// Get the balance of an account `who`.
     /// If the account has no stored balance, we return zero.
-    pub fn balance(&self, who: &AccountId) -> Balance {
-        *self.balances.get(who).unwrap_or(&Balance::zero())
+    pub fn balance(&self, who: &T::AccountId) -> T::Balance {
+        *self.balances.get(who).unwrap_or(&T::Balance::zero())
     }
 
     /// Transfer `amount` from one account to another.
@@ -39,9 +40,9 @@ where
     /// and that no mathematical overflows occur.
     pub fn transfer(
         &mut self,
-        caller: AccountId,
-        to: AccountId,
-        amount: Balance,
+        caller: T::AccountId,
+        to: T::AccountId,
+        amount: T::Balance,
     ) -> Result<(), &'static str> {
         let caller_balance = self.balance(&caller);
         let to_balance = self.balance(&to);
@@ -65,9 +66,16 @@ where
 mod test {
     use super::Pallet;
 
+    struct TestConfig;
+
+    impl super::Config for TestConfig {
+        type AccountId = String;
+        type Balance = u128;
+    }
+
     #[test]
     fn init_balances() {
-        let mut balances = Pallet::<String, u128>::new();
+        let mut balances = Pallet::<TestConfig>::new();
 
         assert_eq!(balances.balance(&"alice".to_string()), 0);
 
@@ -79,7 +87,7 @@ mod test {
 
     #[test]
     fn transfer_balance() {
-        let mut balances = Pallet::<String, u128>::new();
+        let mut balances = Pallet::<TestConfig>::new();
 
         assert_eq!(
             balances.transfer("alice".to_string(), "bob".to_string(), 10),
