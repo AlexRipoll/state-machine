@@ -23,7 +23,6 @@ impl crate::system::Config for Runtime {
 }
 
 impl crate::balances::Config for Runtime {
-    type AccountId = types::AccountId;
     type Balance = types::Balance;
 }
 
