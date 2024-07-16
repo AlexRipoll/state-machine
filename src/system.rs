@@ -1,24 +1,30 @@
-use std::{collections::BTreeMap, ops::Add};
+use std::{
+    collections::BTreeMap,
+    ops::{Add, AddAssign},
+};
 
-pub type AccountID = String;
-pub type BlockNumber = u32;
-pub type Nonce = u32;
+use num::{CheckedAdd, One, Zero};
 
 /// This is the System Pallet.
 /// It handles low level state needed for your blockchain.
 #[derive(Debug)]
-pub struct Pallet {
+pub struct Pallet<AccountId, BlockNumber, Nonce> {
     /// The current block number.
     block_number: BlockNumber,
     /// A map from an account to their nonce.
-    nonce: BTreeMap<AccountID, Nonce>,
+    nonce: BTreeMap<AccountId, Nonce>,
 }
 
-impl Pallet {
+impl<AccountId, BlockNumber, Nonce> Pallet<AccountId, BlockNumber, Nonce>
+where
+    AccountId: Ord + Clone,
+    BlockNumber: Zero + One + CheckedAdd + AddAssign + Copy,
+    Nonce: Zero + One + CheckedAdd + Copy,
+{
     /// Create a new instance of the System Pallet.
     pub fn new() -> Self {
         Self {
-            block_number: 0,
+            block_number: BlockNumber::zero(),
             nonce: BTreeMap::new(),
         }
     }
@@ -31,14 +37,16 @@ impl Pallet {
     // This function can be used to increment the block number.
     // Increases the block number by one.
     pub fn inc_block_number(&mut self) {
-        self.block_number += 1;
+        self.block_number += BlockNumber::one();
     }
 
     // Increment the nonce of an account. This helps us keep track of how many transactions each
     // account has made.
-    pub fn inc_nonce(&mut self, who: &AccountID) {
-        let nonce = self.nonce.get(who).unwrap_or(&0);
-        self.nonce.insert(who.to_string(), nonce.add(1));
+    pub fn inc_nonce(&mut self, who: &AccountId) {
+        let binding = Nonce::zero();
+
+        let nonce = self.nonce.get(who).unwrap_or(&binding);
+        self.nonce.insert(who.clone(), nonce.add(Nonce::one()));
     }
 }
 
@@ -48,7 +56,7 @@ mod test {
 
     #[test]
     fn init_system() {
-        let mut system = Pallet::new();
+        let mut system = Pallet::<String, u32, u32>::new();
 
         system.inc_block_number();
         assert_eq!(system.block_number, 1);
