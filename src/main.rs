@@ -12,8 +12,14 @@ mod types {
 
 #[derive(Debug)]
 pub struct Runtime {
-    system: system::Pallet<AccountId, BlockNumber, Nonce>,
+    system: system::Pallet<Self>,
     balances: balances::Pallet<AccountId, Balance>,
+}
+
+impl crate::system::Config for Runtime {
+    type AccountId = String;
+    type BlockNumber = u32;
+    type Nonce = u32;
 }
 
 impl Runtime {
