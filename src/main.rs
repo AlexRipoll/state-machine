@@ -123,7 +123,47 @@ fn main() {
         }],
     };
 
+    let block_2 = types::Block {
+        header: support::Header { block_number: 2 },
+        extrinsics: vec![
+            support::Extrinsic {
+                caller: "alice".to_string(),
+                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim {
+                    claim: &"Hello, world!",
+                }),
+            },
+            support::Extrinsic {
+                caller: "bob".to_string(),
+                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim {
+                    claim: &"Hello, world!",
+                }),
+            },
+        ],
+    };
+
+    let block_3 = types::Block {
+        header: support::Header { block_number: 3 },
+        extrinsics: vec![
+            support::Extrinsic {
+                caller: "alice".to_string(),
+                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::RevokeClaim {
+                    claim: &"Hello, world!",
+                }),
+            },
+            support::Extrinsic {
+                caller: "bob".to_string(),
+                call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim {
+                    claim: &"Hello, world!",
+                }),
+            },
+        ],
+    };
+
+    // Execute the extrinsics which make up our blocks.
+    // If there are any errors, our system panics, since we should not execute invalid blocks.
     runtime.execute_block(block_1).expect("invalid block");
+    runtime.execute_block(block_2).expect("invalid block");
+    runtime.execute_block(block_3).expect("invalid block");
 
     println!("{:#?}", runtime);
 }
