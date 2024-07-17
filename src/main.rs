@@ -102,22 +102,18 @@ fn main() {
 
     runtime.balances.set_balance(&"alice".to_string(), 100);
 
-    runtime.system.inc_block_number();
-    assert_eq!(runtime.system.block_number(), 1);
+    let block_1 = types::Block {
+        header: support::Header { block_number: 1 },
+        extrinsics: vec![support::Extrinsic {
+            caller: "alice".to_string(),
+            call: RuntimeCall::BalancesTransfer {
+                to: "bob".to_string(),
+                amount: 69,
+            },
+        }],
+    };
 
-    // first transaction
-    runtime.system.inc_nonce(&"alice".to_string());
-    let _ = runtime
-        .balances
-        .transfer("alice".to_string(), "bob".to_string(), 30)
-        .map_err(|e| eprintln!("{}", e));
-
-    // second transaction
-    runtime.system.inc_nonce(&"alice".to_string());
-    let _ = runtime
-        .balances
-        .transfer("alice".to_string(), "charlie".to_string(), 20)
-        .map_err(|e| eprintln!("{}", e));
+    runtime.execute_block(block_1).expect("invalid block");
 
     println!("{:#?}", runtime);
 }
