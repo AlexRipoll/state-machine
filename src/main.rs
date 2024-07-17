@@ -2,6 +2,7 @@ use support::{Block, Dispatch};
 use types::{AccountId, Balance, BlockNumber, Nonce};
 
 mod balances;
+mod proof_of_existence;
 mod support;
 mod system;
 
